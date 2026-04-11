@@ -31,8 +31,6 @@
           0
           (inc (alength ^bytes (:payload body))))))))
 
-(def mfile (tfile/read-file "./torrents/ubuntu.torrent"))
-
 (def message-id->string 
   {-1 "HANDSHAKE"
    0 "CHOKE"
@@ -78,7 +76,9 @@
                    :peer-id peer-id}
         bytes (io/encode handshake-codec handshake)]
     (d/catch 
-      (s/put! tcp-stream bytes)
+      (do 
+        (timbre/info "sending handshake")
+        (s/put! tcp-stream bytes))
       (fn [e]
         (timbre/error e "[!] Failed to send handshake")
         false))))
@@ -88,11 +88,11 @@
   Returns a deferred resolving to the decoded handshake map, or nil on failure"
   [tcp-stream]
   (d/chain 
-    (s/take! tcp-stream)
+    (s/take! (io/decode-stream tcp-stream handshake-codec))
     (fn [buf]
       (when buf
         (try 
-          (io/decode handshake-codec tcp-stream)
+          (io/decode handshake-codec buf)
           (catch Exception e
             (timbre/error e "[!] Failed to decode handshake")
             nil))))))
@@ -116,7 +116,7 @@
 
 (defn connect-to-peer
   "Opens a TCP connection to `host`:`port`, exchanges handshakes and starts consuming messages
-  
+
   Options:
     :custom-transformers - seq of (fn [message] message) applied in order
                            to each incoming message (default: [identity])"
@@ -130,7 +130,10 @@
             (send-handshake tcp-stream raw-info-hash peer-id)
             (fn [sent?]
               (if-not sent?
-                (do (s/close! tcp-stream) nil)
+                (do 
+                  (timbre/error "[!] Handshake not send")
+                  (s/close! tcp-stream)
+                  nil)
                 (read-handshake tcp-stream)))
             (fn [other-handshake]
               (if-not other-handshake
@@ -144,10 +147,10 @@
               (handle-messages client custom-transformers)
               (handle-close client host port)
               client))))
-        (d/catch 
-          (fn [e]
-            (timbre/error e "[!] Failed to connect to peer " host ":" port)
-            nil))))
+      (d/catch 
+        (fn [e]
+          (timbre/error e "[!] Failed to connect to peer " host ":" port)
+          nil))))
 
 (defn close-peer-connection
   "Closes the peer stream if it is still open"
@@ -175,12 +178,13 @@
 (defn send-not-interested [client] (send-message client {:message-id 3 :payload (byte-array 0)}))
 
 (comment 
-  (def mfile (tfile/read-file "./torrents/ubuntu.torrent"))
+  (def mfile (tfile/read-file "./torrents/test.torrent"))
 
-  (def conn (connect-to-peer "0.0.0.0" 19325
+  (def conn (connect-to-peer "localhost" 14618
                              (:raw (tfile/info-hash mfile))
                              (.getBytes "-qB50309999999999999")
                              :custom-transformers [string-handler]))
+  @(d/timeout! conn 500 ::timed-out)
 
   @conn
 

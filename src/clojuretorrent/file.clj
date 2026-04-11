@@ -1,6 +1,5 @@
 (ns clojuretorrent.file
   (:require [clojure.java.io :as io]
-            [clojure.string :as str]
             [clojuretorrent.bencode :refer [read-bstring write-bstring]])
   (:import java.security.MessageDigest
            java.math.BigInteger))

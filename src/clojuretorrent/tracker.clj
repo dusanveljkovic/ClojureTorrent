@@ -1,10 +1,7 @@
 (ns clojuretorrent.tracker
   (:require [clj-http.client :as client]
-            [clojuretorrent.file :as tfile]
             [clojuretorrent.bencode :refer [read-bstring]]
             [clojure.string]))
-
-(def inp (tfile/read-file "./torrents/ubuntu.torrent"))
 
 (defn urlencode-byte-array 
   [b-array]
@@ -24,8 +21,6 @@
        (map (fn [[key val]] (str key "=" val)))
        (clojure.string/join "&")
        (str url "?")))
-
-(def peer-id "-DJ10009999999999999")
 
 (defn send-request
   [announce-url info-hash peer-id left & {:keys [port downloaded uploaded] :or {port 6881 downloaded 0 uploaded 0}}]
