@@ -1,7 +1,7 @@
-(ns djirtorrent.gui.tracker
-  (:require [djirtorrent.gui.common :refer [handle]]
-            [djirtorrent.tracker :refer [send-request]]
-            [djirtorrent.file :refer [announce-url info-hash length]]))
+(ns clojuretorrent.gui.tracker
+  (:require [clojuretorrent.gui.common :refer [handle]]
+            [clojuretorrent.tracker :refer [send-request]]
+            [clojuretorrent.file :refer [announce-url info-hash length]]))
 
 (defmethod handle :djirtorrent.gui.core/query-tracker [{:keys [state]}]
   (let [metadata (state :content)
