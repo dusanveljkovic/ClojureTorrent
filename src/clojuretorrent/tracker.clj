@@ -23,6 +23,13 @@
        (str url "?")))
 
 (defn send-request
+  "Sends an HTTP request to a BitTorrent tracker to query for torrent information.
+  Returns Clojure map containing the data
+  
+  Options:
+    :port - client port, default: 6881
+    :downloaded - bytes downloads, default: 0
+    :uploaded - bytes uploaded, default: 0"
   [announce-url info-hash peer-id left & {:keys [port downloaded uploaded] :or {port 6881 downloaded 0 uploaded 0}}]
   (let [encoded-hash (urlencode-byte-array (:raw info-hash))
         url-with-params (add-query-params announce-url 

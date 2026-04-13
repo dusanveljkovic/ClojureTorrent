@@ -9,7 +9,7 @@
 
 (declare read-bstring)
 
-(defn read-number
+(defn- read-number
   [input delim]
   (let [[parsing-input consumed-input] (split-with #(not= % delim) input)
         data (->> parsing-input
@@ -18,30 +18,30 @@
                   (Long/parseLong))]
     {:data data, :input (rest consumed-input)}))
 
-(defn string-or-binary
+(defn- string-or-binary
   [input]
   (if (every? #(<= 0 % 127) input)
     (apply str (map char input))
     (byte-array input)))
 
-(defn read-string-data
+(defn- read-string-data
   [input length]
   (let [[parsing-input consumed-input] (split-at length input)
         data (->> parsing-input
                   (string-or-binary))]
     {:data data, :input consumed-input}))
 
-(defn skip-n
+(defn- skip-n
   [input n]
   {:data nil, :input (drop n input)})
 
-(defn read-bytestring
+(defn- read-bytestring
   [input]
   (let [number-r (read-number input colon)
         string-r (read-string-data (number-r :input) (number-r :data))]
     string-r))
 
-(defn read-list
+(defn- read-list
   [input]
   (loop [consumed-input input
          acc '()]
@@ -52,7 +52,7 @@
         {:data acc, :input next-input}
         (recur next-input (conj acc data))))))
 
-(defn read-dict
+(defn- read-dict
   [input]
   (loop [consumed-input input
          acc {}]
@@ -65,6 +65,7 @@
         (recur (read-val :input) (conj acc {key val}))))))
 
 (defn read-bstring
+  "Reads a string encoded as a bstring and return a Clojure map"
   [input]
   (let [first-byte (first input)
         skipped (skip-n input 1)]
@@ -75,7 +76,9 @@
           (nil? first-byte) skipped
           :else (read-bytestring input))))
 
-(defmulti write-bstring class)
+(defmulti write-bstring
+  "Takes a Clojure map and return a bstring encoded string"
+  class)
 
 (defmethod write-bstring String [x]
   (str (count x) ":" x))
