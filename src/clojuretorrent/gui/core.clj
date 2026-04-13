@@ -91,19 +91,6 @@
   (:import [javafx.scene.paint Color]
            [javafx.stage Stage]))
 
-(def *state 
-  (atom 
-    {:torrents
-      [{:id 1
-        :name "test-torrent-1"}
-       {:id 2
-        :name "test-torrent-2"}
-       {:id 3
-        :name "test-torrent-3"}
-       ]
-     :selected-id nil
-     :filter :all}) 
-  )
 
 (defn format-bytes 
   [bytes]
@@ -130,57 +117,68 @@
 
 (def style
   (css/register ::style 
-    (let [font-family "'JetBrains Mono', 'Consolas', monospace"] 
+    (let [font-family "'JetBrains Mono', 'Consolas', monospace"
+          base-btn-color "#9bccd4"
+          red-btn-color "#c96f61"
+          yellow-btn-color "#e3dd6b"
+          green-btn-color "#9bd180"
+          active-btn-color "#6bc7e3"
+          btn-border-color "#8c989c"] 
       {".root" 
-       {:fx-background-color "#1a1a2e"
-        :fx-font-family font-family}
+       {
+        :-fx-font-family font-family
+        :-fx-padding "2 8 2 8"}
 
-       ".toolbar"
-       {:-fx-background-color "#16213e"
-        :-fx-padding           "12 16 12 16"
-        :-fx-border-color      "#0f3460"
-        :-fx-border-width      "0 0 1 0"}
+       ".topbar"
+       {}
 
-       ".toolbar-btn"
-       {:-fx-background-color "#0f3460"
-        :-fx-text-fill        "#e2e8f0"
-        :-fx-font-size        "12px"
-        :-fx-font-family      font-family
-        :-fx-padding          "6 14 6 14"
-        :-fx-background-radius "3"
-        :-fx-cursor           "hand"}
+       ".topbar-button"
+       {:-fx-font-size "12px"}
 
-       ".toolbar-btn:hover"
-       {:-fx-background-color "#1a4a8a"}
+       ".seconbar"
+       {}
 
-       ".toolbar-btn-danger"
-       {:-fx-background-color "#7f1d1d"
-        :-fx-text-fill        "#fca5a5"}
+       ".secondbar-btn"
+       {:-fx-font-size "14px"
+        :-fx-font-weight 700
+        :-fx-border-radius 4 
+        :-fx-background-radius 4
+        :-fx-padding "2 8 2 8"
+        :-fx-border-color btn-border-color}
 
-       ".toolbar-btn-danger:hover"
-       {:-fx-background-color "#991b1b"}
+       ".secondbar-btn:hover" 
+       {:-fx-background-color "#80a5ab"}
+
+       ".secondbar-btn-base"
+       {:-fx-background-color base-btn-color}
+
+       ".secondbar-btn-red"
+       {:-fx-background-color red-btn-color}
+
+       ".secondbar-btn-green"
+       {:-fx-background-color green-btn-color}
+
+       ".secondbar-btn-yellow"
+       {:-fx-background-color yellow-btn-color}
 
        ".filter-bar"
-       {:-fx-background-color "#16213e"
-        :-fx-padding          "8 16 8 16"
-        :-fx-border-color     "#0f3460"
-        :-fx-border-width     "0 0 1 0"}
+       {}
    
        ".filter-btn"
-       {:-fx-background-color "transparent"
-        :-fx-text-fill        "#64748b"
-        :-fx-font-size        "11px"
-        :-fx-font-family      font-family
-        :-fx-padding          "4 12 4 12"
-        :-fx-background-radius "2"
+       {:-fx-font-size        "12px"
+        :-fx-padding          "4 8 4 8"
+        :-fx-border-color btn-border-color
+        :-fx-background-radius 4
+        :-fx-border-radius 4
         :-fx-cursor           "hand"
-        :-fx-border-color     "#0f3460"
-        :-fx-border-width     "1"
-        :-fx-border-radius    "2"}
+        :-fx-background-color base-btn-color}
+
+       ".filter-btn-base"
+       {:-fx-background-color base-btn-color}
    
        ".filter-btn-active"
-       {:-fx-background-color "#0f3460"
-        :-fx-text-fill        "#93c5fd"}
+       {:-fx-background-color active-btn-color
+        :-fx-font-weight 600}
      
        ".table-header"
        {:-fx-background-color "#0d1b33"
@@ -190,7 +188,122 @@
        {:-fx-text-fill  "#475569"
         :-fx-font-size  "10px"
         :-fx-font-family font-family}
-     })))
+
+       ".torrent-row"
+       {:-fx-background-color "#1a1a2e"
+        :-fx-padding          "10 16 10 16"
+        :-fx-border-color     "#1e293b"
+        :-fx-border-width     "0 0 1 0"
+        :-fx-cursor           "hand"}
+ 
+       ".torrent-row:hover"
+       {:-fx-background-color "#1e2a45"}
+   
+       ".torrent-row-selected"
+       {:-fx-background-color "#0f2444"
+        :-fx-border-color     "#1d4ed8"
+        :-fx-border-width     "0 0 1 0 "}
+   
+       ".torrent-name"
+       {:-fx-text-fill  "#e2e8f0"
+        :-fx-font-size  "12px"
+        :-fx-font-family font-family}
+   
+       ".torrent-meta"
+       {:-fx-text-fill  "#64748b"
+        :-fx-font-size  "10px"
+        :-fx-font-family font-family}
+   
+       ".status-downloading"
+       {:-fx-text-fill "#38bdf8"
+        :-fx-font-size "10px"
+        :-fx-font-family font-family}
+   
+       ".status-seeding"
+       {:-fx-text-fill "#34d399"
+        :-fx-font-size "10px"
+        :-fx-font-family font-family}
+   
+       ".status-paused"
+       {:-fx-text-fill "#94a3b8"
+        :-fx-font-size "10px"
+        :-fx-font-family font-family}
+   
+       ".status-error"
+       {:-fx-text-fill "#f87171"
+        :-fx-font-size "10px"
+        :-fx-font-family font-family}
+   
+       ".progress-track"
+       {:-fx-background-color "#0f2444"
+        :-fx-background-radius "1"
+        :-fx-pref-height      "3"}
+   
+       ".progress-bar-dl"
+       {:-fx-background-color "#1d4ed8"
+        :-fx-background-radius "1"}
+   
+       ".progress-bar-seed"
+       {:-fx-background-color "#059669"
+        :-fx-background-radius "1"}
+   
+       ".progress-bar-paused"
+       {:-fx-background-color "#334155"
+        :-fx-background-radius "1"}
+   
+       ".stat-value"
+       {:-fx-text-fill  "#94a3b8"
+        :-fx-font-size  "11px"
+        :-fx-font-family font-family}
+   
+       ".statusbar"
+       {:-fx-background-color "#0d1117"
+        :-fx-padding          "5 16 5 16"
+        :-fx-border-color     "#0f3460"
+        :-fx-border-width     "1 0 0 0"}
+   
+       ".statusbar-label"
+       {:-fx-text-fill  "#475569"
+        :-fx-font-size  "10px"
+        :-fx-font-family font-family}})))
+
+(def *state 
+  (atom 
+    {:torrents
+     [{:id 1
+       :name "test-torrent-1"
+       :status :downloading 
+       :progress 0.55
+       :size 54535454353
+       :down-speed 420000
+       :up-speed 10000 
+       :peers 42 
+       :seeds 100 
+       :eta 3111}
+      {:id 2
+       :name "test-torrent-2"
+       :status :seeding 
+       :progress 1.0 
+       :size 111111113224
+       :down-speed 0 
+       :up-speed 8900000 
+       :peers 7 
+       :seed 0 
+       :eta nil}
+      {:id 3
+       :name "test-torrent-3"
+       :status :paused 
+       :progress 0.12 
+       :size 100000434234
+       :down-speed 1600000
+       :up-speed 1232333
+       :peers 15 
+       :seed 100 
+       :eta 1233}
+      ]
+     :selected-id nil
+     :filter :all
+     :style style}))
 
 (defn progress-bar [{:keys [progress status width]}]
   (let [bar-class (case status 
@@ -206,7 +319,8 @@
        :pref-height 3}
       {:fx/type :pane
        :style-class bar-class
-       :pref-width (* width (min progress 1.0))
+       :pref-width (* width progress)
+       :pref-height 3
        :stack-pane/alignment :center-left}]}))
 
 (defn status-chip [{:keys [status]}]
@@ -214,33 +328,88 @@
    :text (str/upper-case (status-label status))
    :style-class (str "status-" (name status))})
 
+(defn torrent-row [{:keys [torrent selected?]}]
+  (let [{:keys [id name status progress size down-speed up-speed peers seeds eta]} torrent]
+    {:fx/type :v-box
+     :style-class (if selected? ["torrent-row" "torrent-row-selected"] ["torrent-row"])
+     :on-mouse-clicked {:event-type ::selected-torrent :id id}
+     :children 
+     [{:fx/type :h-box
+       :spacing 10 
+       :alignment :center-left 
+       :children
+       [{:fx/type :v-box
+         :h-box/hgrow :always 
+         :spacing 4 
+         :children 
+         [{:fx/type :h-box 
+           :spacing 8 
+           :alignment :center-left 
+           :children 
+           [(status-chip {:status status})
+            {:fx/type :label 
+             :text name 
+             :style-class "torrent-name"
+             :max-width Double/MAX_VALUE
+             :h-box/hgrow :always}]}
+          (progress-bar {:progress progress :status status :width 500})
+          {:fx/type :h-box 
+           :spacing 16 
+           :children 
+           [{:fx/type :label 
+             :style-class "torrent-meta"
+             :text (format "%.1f%%" (* progress 100))}]}]}]}]}))
 
-
-(defn toolbar [_]
+(defn topbar [_]
   {:fx/type :h-box
-   :style-class "toolbar"
+   :style-class "topbar"
    :spacing 8
    :alignment :center-left
    :children 
    [{:fx/type :button 
-     :text "+ Add Torrent"
-     :style-class "toolbar-btn"
-     :on-action {:event/type ::add-torrent}}
+     :text "File"
+     :style-class "topbar-button"
+     :on-action {:event/type ::open-file-submenu}}
+    {:fx/type :button 
+     :text "Edit"
+     :style-class "topbar-button"
+     :on-action {:event/type ::open-edit-submenu}}
+    {:fx/type :button 
+     :text "View"
+     :style-class "topbar-button"
+     :on-action {:event/type ::open-view-submenu}}
+    {:fx/type :button
+     :text "Tools"
+     :style-class "topbar-button"
+     :on-action {:event/type ::open-tools-submenu}}
+    ]})
+
+(defn secondbar [_]
+  {:fx/type :h-box
+   :style-class "secondbar"
+   :spacing 12
+   :alignment :center-left
+   :children 
+   [{:fx/type :button 
+     :text "+ Add Torrent Link"
+     :style-class ["secondbar-btn" "secondbar-btn-base"]
+     :on-action {:event/type ::add-torrent-link}}
+    {:fx/type :button 
+     :text "+ Add Torrent File"
+     :style-class ["secondbar-btn" "secondbar-btn-base"]
+     :on-action {:event/type ::add-torrent-file}}
+    {:fx/type :button
+     :text "✕ Remove"
+     :style-class ["secondbar-btn" "secondbar-btn-red"]
+     :on-action {:event/type ::remove-torrent}}
     {:fx/type :button 
      :text "▶ Resume"
-     :style-class "toolbar-btn"
+     :style-class ["secondbar-btn" "secondbar-btn-green"]
      :on-action {:event/type ::resume-torrent}}
     {:fx/type :button 
      :text "⏸ Pause"
-     :style-class "toolbar-btn"
-     :on-action {:event/type ::pause-torrent}}
-    {:fx/type :pane
-     :h-box/hgrow :always}
-    {:fx/type :button
-     :text "✕ Remove"
-     :style-class ["toolbar-btn" "toolbar-btn-danger"]
-     :on-action {:event/type ::remove-torrent}}
-    ]})
+     :style-class ["secondbar-btn" "secondbar-btn-yellow"]
+     :on-action {:event/type ::pause-torrent}}]})
 
 (defn filter-bar [{:keys [current-filter total downloading seeding paused]}]
   (let [filters [[:all (str "All (" total ")") total ]
@@ -252,7 +421,7 @@
                     :text label
                     :style-class (if (= current-filter key)
                                    ["filter-btn" "filter-btn-active"]
-                                   ["filter-btn"])
+                                   ["filter-btn" "filter-btn-base"])
                     :on-action {:event/type ::set-filter :filter key}})]
     {:fx/type :h-box 
      :style-class "filter-bar"
@@ -278,7 +447,24 @@
      :children 
      (map label-f header-names)}))
 
-(defn root [{:keys [torrents selected-id curr-filter]}]
+(defn torrent-list [{:keys [torrents selected-id curr-filter]}]
+  (let [visible (case curr-filter 
+                  :downloading (filter #(= :downloading (:status %)) torrents)
+                  :seeding (filter #(= :seeding (:status %)) torrents)
+                  :paused (filter #(= :paused (:status %)) torrents)
+                  torrents)]
+    {:fx/type :scroll-pane
+     :fit-to-width true 
+     :v-box/vgrow :always
+     :style     "-fx-background-color: #1a1a2e; -fx-border-color: transparent;"
+     :content 
+     {:fx/type :v-box 
+      :children
+      (mapv (fn [t] (torrent-row {:torrent t :selected? (= (:id t) selected-id)}))
+            visible)}}))
+
+
+(defn root [{:keys [torrents selected-id curr-filter style]}]
   (let [counts {:total (count torrents)
                 :downloading (count (filter #(= :downloading (:status %)) torrents))
                 :seeding (count (filter #(= :seeding (:status %)) torrents))
@@ -286,17 +472,22 @@
     {:fx/type :stage
      :showing true
      :title "ClojureTorrent"
-     :width 1000
-     :height 600
+     :width 1920
+     :height 1080
      :scene
      {:fx/type :scene
       :stylesheets [(::css/url style)]
       :root 
       {:fx/type :v-box
        :style-class "root"
+       :spacing 2
        :children 
-       [(toolbar {})
-        (filter-bar (merge counts {:current-filter curr-filter}))]}}}))
+       [(topbar {})
+        (secondbar {})
+        (filter-bar (merge counts {:current-filter curr-filter}))
+        (torrent-list {:torrents torrents 
+                       :selected-id selected-id 
+                       :filter curr-filter})]}}}))
 
 (defmulti handle-event :event/type)
 
@@ -312,8 +503,11 @@
   (fx/mount-renderer *state renderer))
 
 (comment 
-  (app)
-  (renderer))
+  (renderer)
+  (fx/unmount-renderer *state renderer)
+  (add-watch #'style :refresh-app (fn [_ _ _ _] (swap! *state assoc :style style)))
+  (remove-watch #'style :refresh-app)
+  )
 
 (defn -main [& args]
   (fx/mount-renderer *state (renderer)))
