@@ -22,7 +22,7 @@
   (let [digest (.digest (MessageDigest/getInstance "SHA-1") input)]
     {:raw digest :formatted (format "%040x" (BigInteger. 1 digest))}))
 
-(defn info-hashh
+(defn- info-hashh
   [torrent-map]
   (-> (torrent-map "info")
        write-bstring
@@ -40,3 +40,23 @@
   [metadata]
   (get-in metadata ["info" "length"]))
 
+(defn piece-length
+  [metadata]
+  (get-in metadata ["info" "piece length"]))
+
+(defn piece-hashes
+  [metadata]
+  (let [pieces (get-in metadata ["info" "pieces"] )
+        n (/ (alength pieces) 20)]
+    (vec (partition 20 pieces))))
+
+(defn num-pieces
+  [metadata]
+  (count (get-in metadata ["info" "pieces"])))
+
+(comment 
+  (def info (read-file "./torrents/test.torrent"))
+
+  (piece-hashes info)
+  (num-pieces info)
+  )

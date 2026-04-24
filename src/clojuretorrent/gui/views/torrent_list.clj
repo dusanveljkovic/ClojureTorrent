@@ -69,6 +69,13 @@
              :style-class "torrent-meta"
              :text (format "%.1f%%" (* progress 100))}]}]}]}]}))
 
+(defn torrent [{:keys [torrent selected?]}]
+  (let [{:keys [id name status progress size down-speed up-speed peers seeds eta]} torrent]
+    ({:fx/type :table-view
+      :columns [{:fx/type :table-column 
+                 :text }]
+      })))
+
 
 (defn table-header [_]
   (let [header-names ["STATUS / NAME" "PROGRESS" "SIZE" "DOWN" "UP" "PEERS" "ETA"]
@@ -90,13 +97,35 @@
 (defn torrent-list [{:keys [fx/context]}]
   (let [curr-filter (fx/sub-ctx context subs/sub-current-filter)
         visible (fx/sub-ctx context subs.torrents/sub-state curr-filter)
-        selected-id (fx/sub-ctx context subs/sub-selected-id)]
+        selected-id (fx/sub-ctx context subs/sub-selected-id)
+        header-names ["Name" "Size" "Progress" "Status" "Seeds" "Peers" "Down Speed" "Up Speed" "ETA"]]
     {:fx/type :scroll-pane
      :fit-to-width true 
      ; :v-box/vgrow :always
      :style     "-fx-background-color: #1a1a2e; -fx-border-color: transparent;"
      :content 
-     {:fx/type :v-box 
+     {:fx/type :table-view
+      :columns 
+      [{:fx/type :table-column
+        :text "Name" 
+        :cell-value-factory #(:name %)
+        :cell-factory {:fx/cell-type :table-cell 
+                       :describe (fn [x] {:text x})}}
+       {:fx/type :table-column
+        :text "Size" 
+        :cell-value-factory #(:size %)
+        :cell-factory {:fx/cell-type :table-cell 
+                       :describe (fn [x] {:text x})}}
+       {:fx/type :table-column
+        :text "Progress" 
+        :cell-value-factory #(:name %)
+        :cell-factory {:fx/cell-type :table-cell 
+                       :describe (fn [x] {:text x})}}
+       {:fx/type :table-column
+        :text "Status" 
+        :cell-value-factory #(:status %)
+        :cell-factory {:fx/cell-type :table-cell 
+                       :describe (fn [x] {:text x})}}]
       :children
       (mapv (fn [t] 
               {:fx/type torrent-row 
